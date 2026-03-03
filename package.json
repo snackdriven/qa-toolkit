@@ -1,0 +1,18 @@
+{
+  "name": "qa-toolkit",
+  "version": "1.0.0",
+  "description": "QA automation scripts for video analysis, Jira release notes, and workflow tooling",
+  "type": "module",
+  "scripts": {
+    "analyze": "tsx scripts/gemini-video-analyze.ts",
+    "release-notes": "tsx scripts/jira-release-notes.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^0.7.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
