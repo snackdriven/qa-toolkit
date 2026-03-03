@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "analyze": "tsx scripts/gemini-video-analyze.ts",
-    "release-notes": "tsx scripts/jira-release-notes.ts"
+    "release-notes": "tsx scripts/jira-release-notes.ts",
+    "checklist": "tsx scripts/md-to-interactive-checklist.ts",
+    "cal-auth": "tsx scripts/google-calendar-auth.ts"
   },
   "dependencies": {
     "@google/genai": "^0.7.0",
     "dotenv": "^16.0.0"
   },
   "devDependencies": {
+    "@types/node": "^25.3.3",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

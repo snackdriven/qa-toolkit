@@ -2,15 +2,13 @@
 
 Scripts I built to stop doing the same QA work manually. Each one started as a specific annoyance.
 
-The full toolkit is 14 scripts. Two are here. The rest touch PHI-adjacent workflows or are too tightly coupled to internal Jira structure to extract cleanly. HIPAA-adjacent data doesn't sanitize well.
+The full toolkit is 14 scripts. Five are here. The rest touch PHI-adjacent workflows or are too tightly coupled to internal Jira structure to extract cleanly. HIPAA-adjacent data doesn't sanitize well.
 
 ## Scripts
 
 ### `gemini-video-analyze.ts`
 
-Sends a QA screen recording to Gemini and gets back a structured markdown report: timestamps, UI state transitions, errors, dropdown final values, GraphQL activity. Frame extraction by default (reads actual UI text). Pass `--video-mode` if you just want a quick look and don't need accuracy.
-
-Built because scrubbing through recordings to write HIPAA audit evidence was eating an hour per ticket.
+Scrubbing through recordings to write HIPAA audit evidence was eating an hour per ticket. This sends the recording to Gemini instead — structured markdown report back in minutes: timestamps, UI state transitions, errors, dropdown final values, GraphQL activity. Frame extraction by default (reads actual UI text). Pass `--video-mode` if you just want a quick look and don't need accuracy.
 
 ```bash
 npx tsx scripts/gemini-video-analyze.ts recording.mov --ticket PROJ-123
@@ -25,9 +23,7 @@ Cost: ~$0.05–0.10 per 60–90s video in frame mode (default), ~$0.02–0.04 in
 
 ### `jira-release-notes.ts`
 
-Fetches all issues in a Jira release by version URL, categorizes them (features / bugs / breaking / other), and outputs formatted markdown. Pass `--create-calendar-event` to also drop a day-before-release calendar event with a QA checklist in the description.
-
-Built because I was rewriting the same release doc from scratch every cycle.
+Every release cycle ended with rewriting the same doc from scratch. Pass a Jira version URL; get categorized markdown back: features, bugs, breaking changes, other. Pass `--create-calendar-event` to also drop a day-before-release calendar event with a QA checklist in the description.
 
 ```bash
 npx tsx scripts/jira-release-notes.ts https://yourco.atlassian.net/projects/FOO/versions/12345
@@ -40,6 +36,48 @@ Optional: `GOOGLE_CALENDAR_TOKEN`, `WORK_CALENDAR_ID`, `JIRA_PAGE_SIZE`, `CHECKL
 
 ---
 
+### `transcribe-to-md.sh`
+
+Runs WhisperX on a video or audio file and renames the output from `.txt` to `.md`. Accepts multiple files.
+
+```bash
+./scripts/transcribe-to-md.sh recording.mov
+./scripts/transcribe-to-md.sh *.mov  # batch
+```
+
+Requires: `whisperx` installed and on PATH (`pip install whisperx`)
+
+---
+
+### `google-calendar-auth.ts`
+
+One-time OAuth helper for `jira-release-notes.ts`. Google Calendar API setup involves more steps than it should — this handles the server, the callback, and prints the export command when it's done.
+
+```bash
+npx tsx scripts/google-calendar-auth.ts credentials.json
+```
+
+Requires: Google OAuth 2.0 credentials JSON (Desktop app type) from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+
+Note: the redirect URI in your credentials file must point to localhost. The script reads the port from it.
+
+---
+
+### `md-to-interactive-checklist.ts`
+
+Flat markdown checklists are fine until you're mid-release and losing your place. Converts a markdown checklist to a self-contained interactive HTML file: checkboxes, per-block progress counters, localStorage so state survives a refresh. Optionally links Jira ticket IDs to your instance.
+
+```bash
+npx tsx scripts/md-to-interactive-checklist.ts release-checklist.md
+npx tsx scripts/md-to-interactive-checklist.ts checklist.md --output out.html
+npx tsx scripts/md-to-interactive-checklist.ts checklist.md --no-jira-links
+```
+
+Requires: nothing
+Optional: `JIRA_BASE_URL` (for ticket links in the HTML output)
+
+---
+
 ## Setup
 
 ```bash
@@ -48,10 +86,11 @@ cp .env.example .env
 # fill in .env
 ```
 
-Both scripts use `dotenv` so credentials load from `.env` automatically.
+The TypeScript scripts use `dotenv` so credentials load from `.env` automatically.
 
 ## Requirements
 
 - Node.js 18+
 - `tsx` (installed via devDependencies)
 - ffmpeg (required for frame extraction mode in `gemini-video-analyze.ts`)
+- whisperx (required for `transcribe-to-md.sh`)

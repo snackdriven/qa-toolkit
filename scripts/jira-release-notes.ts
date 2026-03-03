@@ -114,8 +114,9 @@ async function main(): Promise<void> {
     // Filter by status if specified
     let filteredIssues = result.issues;
     if (options.statusFilter && options.statusFilter.length > 0) {
+      const statusFilter = options.statusFilter;
       filteredIssues = result.issues.filter((issue) =>
-        options.statusFilter.includes(issue.status)
+        statusFilter.includes(issue.status)
       );
     }
 
