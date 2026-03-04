@@ -6,9 +6,29 @@ The full toolkit is 14 scripts. Five are here. The rest touch PHI-adjacent workf
 
 ## Scripts
 
+### `daily-qa-setup.ts`
+
+Spent 20-30 minutes every morning reading Jira, picking what to test first, and writing the same kinds of test plans. Built this to do that part instead. It pulls your assigned QA tickets and parent stories, sends them to Claude for AC atomization and LOE scoring, and writes per-ticket HTML test plans. Checkboxes save to localStorage. There's a "Copy for Jira" button that builds a pass/fail comment ready to paste directly into the ticket.
+
+```bash
+npx tsx scripts/daily-qa-setup.ts
+npx tsx scripts/daily-qa-setup.ts 2026-03-05        # specific date
+npx tsx scripts/daily-qa-setup.ts --dry-run          # analyze only, no HTML
+npx tsx scripts/daily-qa-setup.ts --ticket PROJ-1234 # single ticket, bypass JQL
+npx tsx scripts/daily-qa-setup.ts --from-state       # regenerate HTML, skip API calls
+npx tsx scripts/daily-qa-setup.ts --open --quiet     # open browser, suppress logs
+```
+
+Requires: `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_BASE_URL`, `ANTHROPIC_API_KEY`
+Optional: `QA_OUTPUT_DIR` (default: `./qa-output`), `JIRA_LABEL` (shown in HTML headers, e.g. `"Sprint 42"`)
+
+Configure your Jira workflow status names and custom field IDs in the `QA_STATUSES` and `JIRA_FIELDS` constants near the top of the file. The defaults are examples, not universals.
+
+---
+
 ### `gemini-video-analyze.ts`
 
-Scrubbing through recordings to write HIPAA audit evidence was eating an hour per ticket. This sends the recording to Gemini instead — structured markdown report back in minutes: timestamps, UI state transitions, errors, dropdown final values, GraphQL activity. Frame extraction by default (reads actual UI text). Pass `--video-mode` if you just want a quick look and don't need accuracy.
+Scrubbing through recordings to write HIPAA audit evidence was eating an hour per ticket. Now I just send the recording to Gemini. Structured markdown report back in minutes: timestamps, UI state transitions, errors, dropdown final values, GraphQL activity. Frame extraction by default (reads actual UI text). Pass `--video-mode` if you just want a quick look and don't need accuracy.
 
 ```bash
 npx tsx scripts/gemini-video-analyze.ts recording.mov --ticket PROJ-123
@@ -51,7 +71,7 @@ Requires: `whisperx` installed and on PATH (`pip install whisperx`)
 
 ### `google-calendar-auth.ts`
 
-One-time OAuth helper for `jira-release-notes.ts`. Google Calendar API setup involves more steps than it should — this handles the server, the callback, and prints the export command when it's done.
+One-time OAuth helper for `jira-release-notes.ts`. Google Calendar's OAuth flow has more steps than it should. This handles the server and callback, then prints the exact export command to run when it's done.
 
 ```bash
 npx tsx scripts/google-calendar-auth.ts credentials.json
